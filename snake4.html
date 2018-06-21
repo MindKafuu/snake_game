@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snake Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.js"></script>
+    <style>
+        canvas {
+            border: 3px solid black;
+            background-color: #FFC125;
+            margin: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var direction, food, snake, score, level, canvas_width, canvas_height;
+        var grid = 10, score_count, speed;
+        var snake_color = "#009ACD"; 
+        var food_color = "#FF0000";
+        var rim_color = "#ffffff";
+        var text_color = "#8B008B";
+
+        function init() {
+            direction = "right";
+            score = 0;
+            level = 1;
+            score_count = 5;
+            speed = 10;
+            canvas_width = 400;
+            canvas_height = 400;
+
+            control.start();
+            create_snake(5);
+            create_food();
+        }
+
+        var control = {
+            start: function () {
+                window.addEventListener("keydown", function (e) {
+                    control.key = e.keyCode;
+                })
+                window.addEventListener("keyup", function (e) {
+                    control.key = false;
+                })
+            }
+        }
+
+        function create_snake(length) {
+            snake = [];
+
+            //create a horizontal snake
+            for (var i = length - 1; i >= 0; i--) {
+                snake.push({ x: i, y: 0 });
+            }
+        }
+
+        function create_food() {
+            food = {
+                x: Math.round(Math.random() * (canvas_width - grid) / grid),
+                y: Math.round(Math.random() * (canvas_height - grid) / grid),
+            };
+        }
+
+        function setup() {
+            createCanvas(canvas_width, canvas_height);
+        }
+
+        init();
+        function draw() {
+            gameUdate();
+            clear();
+
+            frameRate(speed);
+
+            var snake_x = snake[0].x;
+            var snake_y = snake[0].y;
+
+            //delete tail and add head
+            if (direction == "right") snake_x++;
+            if (direction == "left") snake_x--;
+            if (direction == "up") snake_y--;
+            if (direction == "down") snake_y++;
+
+            if (snake_x == -1 || snake_x == canvas_width / grid || snake_y == -1 || snake_y == canvas_height / grid || check_collision(snake_x, snake_y, snake)) {
+                //restart game
+                init();
+                return;
+            }
+            if (snake_x == food.x && snake_y == food.y) {
+                var tail = { x: snake_x, y: snake_y };
+
+                //create new food
+                create_food();
+
+                //have points
+                score++;
+
+                //level up
+                if(score > score_count) {level++; score_count += 5; speed += 5;}
+            } else {
+                var tail = snake.pop(); //pops out the last cell
+                tail.x = snake_x; tail.y = snake_y;
+            }
+
+            snake.unshift(tail); //puts back the tail as the first cell
+
+            for (var i = 0; i < snake.length; i++) {
+                var c = snake[i];
+                //paint 10px wide cells
+                fill(snake_color);
+                rect(c.x * grid, c.y * grid, grid, grid);
+                stroke(rim_color);
+                rect(c.x * grid, c.y * grid, grid, grid);
+            }
+
+            //paint the food
+            rect(food.x * grid, food.y * grid, grid, grid);
+            fill(food_color);
+            stroke(rim_color);
+            rect(food.x * grid, food.y * grid, grid, grid);
+
+            //draw score and level
+            var score_text = "Score: " + score;
+            var level_text = "Level: " + level;
+
+            fill(text_color)
+            text(score_text, 5, canvas_height - 5);
+            text(level_text, 60, canvas_height - 5);
+        }
+
+        function check_collision(x, y, array) {
+            for (var i = 0; i < array.length; i++) {
+                if (array[i].x == x && array[i].y == y)
+                    return true;
+            }
+            return false;
+        }
+
+        function gameUdate() {
+            if (control.key && control.key == 37 && direction != "right") direction = "left";
+            else if (control.key && control.key == 39 && direction != "left") direction = "right";
+            else if (control.key && control.key == 38 && direction != "down") direction = "up";
+            else if (control.key && control.key == 40 && direction != "up") direction = "down";
+        }
+
+
+    </script>
+</body>
+
+</html>
